@@ -22,7 +22,7 @@ Display a 12-character randomly-generated token with a prefix:
 
 bc. <txp:smd_token length="12" prefix="nonce-" />
 
-THe above example outputs something like @nonce-ab1b7f98175e@.
+The above example outputs something like @nonce-ab1b7f98175e@.
 
 bc. <txp:smd_token name="my_csp" length="12" prefix="nonce-" />
 
