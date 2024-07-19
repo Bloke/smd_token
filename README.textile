@@ -10,7 +10,7 @@ To uninstall, delete the plugin from the _Admin->Plugins_ panel.
 
 h2. Usage examples
 
-16-character tokens are default therefore to return a 16-character randomly-generated token:
+16-character tokens are default, so to immediately return a 16-character randomly-generated token:
 
 bc. <txp:smd_token />
 
@@ -22,7 +22,29 @@ Display a 12-character randomly-generated token with a prefix:
 
 bc. <txp:smd_token length="12" prefix="nonce-" />
 
-Outputs something like @nonce-ab1b7f98175e@.
+THe above example outputs something like @nonce-ab1b7f98175e@.
+
+bc. <txp:smd_token name="my_csp" length="12" prefix="nonce-" />
+
+Outputs a 12-character token with prefix, and stores the token value as 'my_csp' for later use in the same page request. If you don't wish to display the token at this time (e.g. if you're generating it in advance) specify @display="0"@.
+
+To retrieve the previously stored token and display its value:
+
+bc. <txp:smd_token name="my_csp" />
+
+The @length@ is ignored if you retrieve a previously saved token. But the @prefix@ may be altered. Using @display="0"@ in this case is pointless, because you would always need to display a token you've retrieved, but the ability to silence the output is honoured anyway.
+
+To check if a named token has been generated already, use the conditional tag:
+
+bc. <txp:smd_if_token name="my_csp">
+    <txp:smd_token name="my_csp" prefix="nonce-" />
+<txp:else />
+    <txp:smd_token name="my_csp" prefix="nonce-" length="12" />
+</txp:smd_if_token>
+
+The @name@ attribute is mandatory. Without it, the tag will always return false.
+
+If used as a single tag, the result will be 1 if the token exists, or empty otherwise.
 
 h2. Author / credits
 

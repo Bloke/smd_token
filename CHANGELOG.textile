@@ -1,5 +1,10 @@
 h1. Changelog
 
+h2. 0.2.0 - 2024-07-19
+
+* Added @name@ attribute for tag reuse on a single page.
+* Added @<txp:smd_if_token>@ conditional tag.
+
 h2. 0.1.0 - 2019-11-18
 
 * Initial release.

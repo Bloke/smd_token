@@ -17,7 +17,7 @@ $plugin['name'] = 'smd_token';
 // 1 = Plugin help is in raw HTML.  Not recommended.
 # $plugin['allow_html_help'] = 1;
 
-$plugin['version'] = '0.1.0';
+$plugin['version'] = '0.2.0';
 $plugin['author'] = 'Stef Dawson';
 $plugin['author_uri'] = 'https://stefdawson.com/';
 $plugin['description'] = 'Generate cryptographically random tokens for use within Textpattern';
@@ -74,7 +74,7 @@ if (!defined('txpinterface'))
 /**
  * smd_tokem
  *
- * A Textpattern CMS plugin for generating random tokens
+ * A Textpattern CMS plugin for generating random cryptographic tokens
  *
  * @author Stef Dawson
  * @link   https://stefdawson.com/
@@ -83,9 +83,13 @@ if (!defined('txpinterface'))
 if (txpinterface === 'public') {
     if (class_exists('\Textpattern\Tag\Registry')) {
         Txp::get('\Textpattern\Tag\Registry')
-            ->register('smd_token');
+            ->register('smd_token')
+            ->register('smd_if_token');
     }
 }
+
+global $smd_tokens;
+$smd_tokens = array();
 
 /**
  * Public tag: generate a random token.
@@ -96,16 +100,72 @@ if (txpinterface === 'public') {
  */
 function smd_token($atts, $thing = null)
 {
+    global $smd_tokens;
+
     extract(lAtts(array(
-        'length' => 16,
-        'prefix' => '',
+        'display' => 1,
+        'length'  => 16,
+        'name'    => '',
+        'prefix'  => '',
     ), $atts));
 
-    $token = Txp::get('\Textpattern\Password\Random')->generate($length);
+    if ($name) {
+        $name = sanitizeForUrl($name);
 
-    return $prefix.$token;
+        if (array_key_exists($name, $smd_tokens)) {
+            // It exists, so fetch it.
+            $token = $smd_tokens[$name];
+        } else {
+            // Not yet defined, so store it.
+            $token = smd_generate_token($length);
+            $smd_tokens[$name] = $token;
+        }
+    } else {
+        // Name not given so it's a one-shot token.
+        $token = smd_generate_token($length);
+    }
+
+    if ($display) {
+        return $prefix.$token;
+    } else {
+        return;
+    }
 }
 
+/**
+ * Tests if the given token exists.
+ *
+ * @param  array  $atts  Tag attributes
+ * @param  string $thing Contained content to execute on true/false
+ * @return string|bool   Parsed content or true/false
+ */
+function smd_if_token($atts, $thing = '')
+{
+    global $smd_tokens;
+
+    extract(lAtts(array(
+        'name' => '',
+    ), $atts));
+
+    $result = false;
+
+    if ($name) {
+        $name = sanitizeForUrl($name);
+        $result = array_key_exists($name, $smd_tokens);
+    }
+
+    return !empty($thing) ? parse($thing, $result) : $result;
+}
+
+/**
+ * Generate a unique cryptographic token of the given length.
+ *
+ * @param  int $length Number of characters to make the token
+ * @return string      The token
+ */
+function smd_generate_token($length) {
+    return Txp::get('\Textpattern\Password\Random')->generate($length);
+}
 
 # --- END PLUGIN CODE ---
 if (0) {
@@ -124,7 +184,7 @@ To uninstall, delete the plugin from the _Admin->Plugins_ panel.
 
 h2. Usage examples
 
-16-character tokens are default therefore to return a 16-character randomly-generated token:
+16-character tokens are default, so to immediately return a 16-character randomly-generated token:
 
 bc. <txp:smd_token />
 
@@ -136,7 +196,29 @@ Display a 12-character randomly-generated token with a prefix:
 
 bc. <txp:smd_token length="12" prefix="nonce-" />
 
-Outputs something like @nonce-ab1b7f98175e@.
+THe above example outputs something like @nonce-ab1b7f98175e@.
+
+bc. <txp:smd_token name="my_csp" length="12" prefix="nonce-" />
+
+Outputs a 12-character token with prefix, and stores the token value as 'my_csp' for later use in the same page request. If you don't wish to display the token at this time (e.g. if you're generating it in advance) specify @display="0"@.
+
+To retrieve the previously stored token and display its value:
+
+bc. <txp:smd_token name="my_csp" />
+
+The @length@ is ignored if you retrieve a previously saved token. But the @prefix@ may be altered. Using @display="0"@ in this case is pointless, because you would always need to display a token you've retrieved, but the ability to silence the output is honoured anyway.
+
+To check if a named token has been generated already, use the conditional tag:
+
+bc. <txp:smd_if_token name="my_csp">
+    <txp:smd_token name="my_csp" prefix="nonce-" />
+<txp:else />
+    <txp:smd_token name="my_csp" prefix="nonce-" length="12" />
+</txp:smd_if_token>
+
+The @name@ attribute is mandatory. Without it, the tag will always return false.
+
+If used as a single tag, the result will be 1 if the token exists, or empty otherwise.
 
 h2. Author / credits
 
