@@ -1,0 +1,29 @@
+h1. smd_token
+
+Public tag to return a cryptographically secure sequence of characters. Very handy for using inside plugins or CSP headers.
+
+h2. Installation / Uninstallation
+
+"Download this plugin":https://github.com/Bloke/smd_token/releases/latest and then paste the code from the .txt file into the Textpattern _Admin->Plugins_ panel, install and enable the plugin. For bug reports, please "raise an issue":https://github.com/Bloke/smd_token/issues.
+
+To uninstall, delete the plugin from the _Admin->Plugins_ panel.
+
+h2. Usage examples
+
+16-character tokens are default therefore to return a 16-character randomly-generated token:
+
+bc. <txp:smd_token />
+
+Display a 24-character randomly-generated token:
+
+bc. <txp:smd_token length="24" />
+
+Display a 12-character randomly-generated token with a prefix:
+
+bc. <txp:smd_token length="12" prefix="nonce-" />
+
+Outputs something like @nonce-ab1b7f98175e@.
+
+h2. Author / credits
+
+Written by "Stef Dawson":https://stefdawson.com/contact.
